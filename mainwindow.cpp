@@ -1,16 +1,50 @@
 #include "mainwindow.h"
+#include "optionsdialog.h"
 
 #include <QSizePolicy>
 #include <Qt>
 #include <QStringList>
 #include <QTreeWidgetItem>
+#include <QMenuBar>
+#include <QIcon>
+#include <QKeySequence>
+#include <QMessageBox>
+#include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+  create_menu();
   create_layout();
   create_top_layout();
   create_bottom_layout();
+}
+
+void MainWindow::create_menu()
+{
+  file_menu = menuBar()->addMenu(tr("&File"));
+  exit_act = new QAction(QIcon::fromTheme("application-exit"), tr("&Exit"), this);
+  exit_act->setShortcut(QKeySequence::Quit);
+  connect(exit_act, &QAction::triggered, this, &MainWindow::app_exit);
+  file_menu->addAction(exit_act);
+
+  tools_menu = menuBar()->addMenu(tr("&Tools"));
+  export_act = new QAction(tr("E&xport entries..."), this);
+  export_act->setShortcut(QKeySequence(tr("Ctrl+X")));
+  tools_menu->addAction(export_act);
+  QAction *sep = new QAction(this);
+  sep->setSeparator(true);
+  tools_menu->addAction(sep);
+  options_act = new QAction(tr("&Options..."), this);
+  options_act->setShortcut(QKeySequence(tr("Ctrl+O")));
+  connect(options_act, &QAction::triggered, this, &MainWindow::show_options);
+  tools_menu->addAction(options_act);
+
+  help_menu = menuBar()->addMenu(tr("&Help"));
+  about_act = new QAction(QIcon::fromTheme("help-about"), tr("&About WDiary..."), this);
+  about_act->setShortcut(QKeySequence(tr("Ctrl+A")));
+  connect(about_act, &QAction::triggered, this, &MainWindow::show_about);
+  help_menu->addAction(about_act);
 }
 
 void MainWindow::create_layout()
@@ -44,6 +78,7 @@ void MainWindow::create_top_layout()
   text_label = new QLabel(tr("Description of work performed:"));
 
   date_edit = new QDateEdit;
+  date_edit->setDate(QDate::currentDate());
   date_edit->setToolTip(tr("Enter date for diary entry, or click date on calendar."));
 
   activity_combo = new QComboBox;
@@ -54,7 +89,8 @@ void MainWindow::create_top_layout()
   activity_combo->addItem(tr("Graphics"));
   activity_combo->setCurrentText("");
 
-  title_edit = new QLineEdit;
+  title_edit = new QComboBox;
+  title_edit->setEditable(true);
   title_edit->setToolTip(tr("Enter title for diary entry."));
 
   hour_combo = new QComboBox;
@@ -159,6 +195,38 @@ void MainWindow::create_tree_view()
   QTreeWidgetItem *item3 = new QTreeWidgetItem(item2);
   item3->setText(0, "Week 43");
   item3->setText(1, "42:00");
+}
+
+void MainWindow::show_about()
+{
+  QString msg = tr("<center><b>WDiary Version 1.0.0</b><br/><br/>");
+  msg += tr("A work diary to keep track of what you have done when.<br/>");
+  msg += tr("Copyright (C) 2013  Marcus Pedersén<br/></center>");
+  msg += tr("This program is free software: you can redistribute it and/or modify<br/>");
+  msg += tr("it under the terms of the GNU General Public License as published by<br/>");
+  msg += tr("the Free Software Foundation, either version 3 of the License, or<br/>");
+  msg += tr("(at your option) any later version.<br/><br/>");
+  msg += tr("This program is distributed in the hope that it will be useful,<br/>");
+  msg += tr("but WITHOUT ANY WARRANTY; without even the implied warranty of<br/>");
+  msg += tr("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br/>");
+  msg += tr("GNU General Public License for more details.<br/><br/>");
+  msg += tr("You should have received a copy of the GNU General Public License<br/>");
+  msg += tr("along with this program.  If not, see http://www.gnu.org/licenses/<br/><br/>");
+  msg += tr("Contact: marcux@marcux.org<br/>");
+  msg += tr("Repro: https://github.com/xmarcux/wdiary");
+
+  QMessageBox::about(this, tr("About WDiary"), msg);
+}
+
+void MainWindow::app_exit()
+{
+  QApplication::quit();
+}
+
+void MainWindow::show_options()
+{
+  OptionsDialog *opt = new OptionsDialog(this);
+  opt->show();
 }
 
 MainWindow::~MainWindow()

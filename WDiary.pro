@@ -14,9 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    activity.cpp
+        activity.cpp \
+        optionsdialog.cpp
 
 HEADERS  += mainwindow.h \
-    activity.h
+            activity.h \
+            optionsdialog.h
 
 CONFIG += C++11

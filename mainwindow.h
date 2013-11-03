@@ -19,12 +19,27 @@
 #include <QTreeWidget>
 #include <QStandardItemModel>
 #include <QStandardItem>
+#include <QMenu>
+#include <QAction>
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 private:
+    /** File menu */
+    QMenu *file_menu;
+    QAction *exit_act;
+    
+    /** Tools menu */
+    QMenu *tools_menu;
+    QAction *export_act;
+    QAction *options_act;
+
+    /** Help menu */
+    QMenu *help_menu;
+    QAction *about_act;
+
     QVBoxLayout *main_layout;
     QHBoxLayout *top_layout;
     QGridLayout *new_layout;
@@ -42,7 +57,7 @@ private:
     QLabel *text_label;
 
     QDateEdit *date_edit;
-    QLineEdit *title_edit;
+    QComboBox *title_edit;
     
     QComboBox *hour_combo;
     QComboBox *minute_combo;
@@ -62,6 +77,11 @@ private:
     QRadioButton *month_radio;
 
     QTreeWidget *entry_view;
+
+    /**
+     * Sets up the menubar.
+     */
+    void create_menu();
 
     /**
      * Sets up layout needed
@@ -93,6 +113,11 @@ private:
      * current items.
      */
     void create_tree_view();
+
+public slots:
+    void show_about();
+    void app_exit();
+    void show_options();
 
 public:
     MainWindow(QWidget *parent = 0);

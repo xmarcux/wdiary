@@ -28,6 +28,12 @@ public:
     int day() const;
     int hours() const;
     int minutes() const;
+
+    /**
+     * If date in Activity is invalid,
+     * returned QDate member function 
+     * isValid() will return false.
+     */
     QDate date() const;
 
     QString title() const;
