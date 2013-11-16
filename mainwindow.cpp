@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "optionsdialog.h"
+#include "exportdialog.h"
 
 #include <QSizePolicy>
 #include <Qt>
@@ -14,10 +15,14 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+  date_valid = hour_valid = min_valid = title_valid = activity_valid = false;
+
   create_menu();
   create_layout();
   create_top_layout();
   create_bottom_layout();
+
+  set_add_button_enabled();
 }
 
 void MainWindow::create_menu()
@@ -29,8 +34,9 @@ void MainWindow::create_menu()
   file_menu->addAction(exit_act);
 
   tools_menu = menuBar()->addMenu(tr("&Tools"));
-  export_act = new QAction(tr("E&xport entries..."), this);
-  export_act->setShortcut(QKeySequence(tr("Ctrl+X")));
+  export_act = new QAction(tr("&Export entries..."), this);
+  export_act->setShortcut(QKeySequence(tr("Ctrl+E")));
+  connect(export_act, &QAction::triggered, this, &MainWindow::show_export);
   tools_menu->addAction(export_act);
   QAction *sep = new QAction(this);
   sep->setSeparator(true);
@@ -79,7 +85,9 @@ void MainWindow::create_top_layout()
 
   date_edit = new QDateEdit;
   date_edit->setDate(QDate::currentDate());
+  date_valid = true;
   date_edit->setToolTip(tr("Enter date for diary entry, or click date on calendar."));
+  connect(date_edit, &QDateEdit::dateChanged, this, &MainWindow::is_date_valid);
 
   activity_combo = new QComboBox;
   activity_combo->setEditable(true);
@@ -88,17 +96,22 @@ void MainWindow::create_top_layout()
   activity_combo->addItem(tr("Programming"));
   activity_combo->addItem(tr("Graphics"));
   activity_combo->setCurrentText("");
+  connect(activity_combo, &QComboBox::currentTextChanged, this, &MainWindow::is_activity_valid);
 
   title_edit = new QComboBox;
   title_edit->setEditable(true);
   title_edit->setToolTip(tr("Enter title for diary entry."));
+  connect(title_edit, &QComboBox::currentTextChanged, this, &MainWindow::is_title_valid);
 
   hour_combo = new QComboBox;
   hour_combo->setToolTip(tr("Used hours for job entry."));
   hour_combo->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  connect(hour_combo, SIGNAL(activated(int)), this, SLOT(is_hour_valid(int)));
+
   minute_combo = new QComboBox;
   minute_combo->setToolTip(tr("Used minutes for job entry."));
   minute_combo->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  connect(minute_combo, SIGNAL(activated(int)), this, SLOT(is_min_valid(int)));
 
   for(int i=0; i <= 24; i++){
     hour_combo->addItem(QString::number(i));
@@ -159,16 +172,16 @@ void MainWindow::create_bottom_layout()
   radio_button_layout = new QHBoxLayout;
   bottom_layout->addLayout(radio_button_layout);
 
-  today_radio = new QRadioButton(tr("&Todays entries:"), view_group);
+  today_radio = new QRadioButton(tr("&Todays entries"), view_group);
   today_radio->setChecked(true);
   today_radio->setToolTip(tr("Choose date in calendar."));
   radio_button_layout->addWidget(today_radio);
   radio_button_layout->setAlignment(today_radio, Qt::AlignHCenter);
-  week_radio = new QRadioButton(tr("This &weeks entries:"), view_group);
+  week_radio = new QRadioButton(tr("This &weeks entries"), view_group);
   week_radio->setToolTip(tr("Click on date in calender, that week will be shown."));
   radio_button_layout->addWidget(week_radio);
   radio_button_layout->setAlignment(week_radio, Qt::AlignHCenter);
-  month_radio = new QRadioButton(tr("This &months entries:"), view_group);
+  month_radio = new QRadioButton(tr("This &months entries"), view_group);
   month_radio->setToolTip(tr("Current month in calendar will be shown."));
   radio_button_layout->addWidget(month_radio);
   radio_button_layout->setAlignment(month_radio, Qt::AlignHCenter);
@@ -180,7 +193,7 @@ void MainWindow::create_tree_view()
 {
   QStringList headers;
   headers << tr("Date") << tr("Time") << tr("Title") << tr("Description");
-  entry_view = new QTreeWidget;
+  entry_view = new TreeWidgetMenu;
   entry_view->setHeaderLabels(headers);
 
   bottom_layout->addWidget(entry_view);
@@ -195,6 +208,12 @@ void MainWindow::create_tree_view()
   QTreeWidgetItem *item3 = new QTreeWidgetItem(item2);
   item3->setText(0, "Week 43");
   item3->setText(1, "42:00");
+
+  QTreeWidgetItem *item4 = new QTreeWidgetItem(item3);
+  item4->setText(0, "8 October");
+  item4->setText(1, "2:00");
+  item4->setText(2, "418689 Analys nätverk");
+  item4->setText(3, "Sökt av nät med analysatorn.\nBandbredd bra lite trasiga paket");
 }
 
 void MainWindow::show_about()
@@ -227,6 +246,78 @@ void MainWindow::show_options()
 {
   OptionsDialog *opt = new OptionsDialog(this);
   opt->show();
+}
+
+void MainWindow::show_export()
+{
+  ExportDialog *exp = new ExportDialog(this);
+  exp->show();
+}
+
+void MainWindow::is_date_valid(const QDate &d)
+{
+  if(d.isValid())
+    date_valid = true;
+  else
+    date_valid = false;
+
+  set_add_button_enabled();
+}
+
+void MainWindow::is_hour_valid(int index)
+{
+  if(index)
+    hour_valid = true;
+  else
+    hour_valid = false;
+
+  set_add_button_enabled();
+}
+
+void MainWindow::is_min_valid(int index)
+{
+  if(index)
+    min_valid = true;
+  else
+    min_valid = false;
+
+  set_add_button_enabled();
+}
+
+void MainWindow::is_title_valid(const QString &text)
+{
+  bool valid = false;
+  for(auto pos = text.begin(); pos != text.end(); pos++){
+    if(pos->isPrint() && !pos->isSpace()){
+      valid = true;
+      break;
+    }
+  }
+
+  title_valid = valid;
+  set_add_button_enabled();
+}
+
+void MainWindow::is_activity_valid(const QString &text)
+{
+  bool valid = false;
+  for(auto pos = text.begin(); pos != text.end(); pos++){
+    if(pos->isPrint() && !pos->isSpace()){
+      valid = true;
+      break;
+    }
+  }
+
+  activity_valid = valid;
+  set_add_button_enabled();
+}
+
+void MainWindow::set_add_button_enabled()
+{
+  if(date_valid && (hour_valid || min_valid) && title_valid && activity_valid)
+    add_button->setEnabled(true);
+  else
+    add_button->setEnabled(false);
 }
 
 MainWindow::~MainWindow()

@@ -15,10 +15,16 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
         activity.cpp \
-        optionsdialog.cpp
+        optionsdialog.cpp \
+        exportdialog.cpp \
+        treewidgetmenu.cpp \
+        edititemdialog.cpp
 
 HEADERS  += mainwindow.h \
             activity.h \
-            optionsdialog.h
+            optionsdialog.h \
+            exportdialog.h \
+            treewidgetmenu.h \
+            edititemdialog.h
 
 CONFIG += C++11

@@ -16,11 +16,12 @@
 #include <QTextEdit>
 #include <QPushButton>
 #include <QRadioButton>
-#include <QTreeWidget>
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QMenu>
 #include <QAction>
+#include <QDate>
+#include "treewidgetmenu.h"
 
 class MainWindow : public QMainWindow
 {
@@ -65,6 +66,18 @@ private:
 
     QTextEdit *text_edit;
 
+    /*
+     * Sets booleans if input
+     * is valid. If all inputs
+     * are valid add button 
+     * will be enabled.
+     */
+    bool date_valid;
+    bool hour_valid;
+    bool min_valid;
+    bool title_valid;
+    bool activity_valid;
+
     QPushButton *add_button;
 
 
@@ -76,7 +89,7 @@ private:
     QRadioButton *week_radio;
     QRadioButton *month_radio;
 
-    QTreeWidget *entry_view;
+    TreeWidgetMenu *entry_view;
 
     /**
      * Sets up the menubar.
@@ -114,10 +127,25 @@ private:
      */
     void create_tree_view();
 
-public slots:
+    /*
+     * If all inputs are valid 
+     * add item button wil then 
+     * be enabled.
+     */
+    void set_add_button_enabled();
+
+private slots:
     void show_about();
     void app_exit();
     void show_options();
+    void show_export();
+
+    void is_date_valid(const QDate &d);
+    void is_hour_valid(int index);
+    void is_min_valid(int index);
+    void is_title_valid(const QString &text);
+    void is_activity_valid(const QString &text);
+
 
 public:
     MainWindow(QWidget *parent = 0);

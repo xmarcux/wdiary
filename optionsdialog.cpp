@@ -5,6 +5,7 @@ OptionsDialog::OptionsDialog(QWidget *parent)
   : QDialog(parent)
 {
   setWindowTitle(tr("Options"));
+  setModal(true);
   setFixedSize(minimumSize());
   create_layout();
   create_options();
